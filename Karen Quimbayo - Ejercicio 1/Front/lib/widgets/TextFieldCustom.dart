@@ -1,42 +1,49 @@
-// lib/widgets/TextFieldCustom.dart (modificado)
+// ognore
+
 import 'package:flutter/material.dart';
+
+import '../utils/Global.colors.dart';
 
 class TextFieldCustom extends StatelessWidget {
   final TextInputType type;
   final IconData icon;
+  final Color appColor = GlobalColors.secondaryBtnColor;
+  final bool pass;
   final String label;
   final String hint;
-  final bool pass;
+  final double radius = 50;
   final TextEditingController? controller;
-  final String? Function(String?)? validator;
 
-  const TextFieldCustom({
-    super.key,
+  TextFieldCustom({
     required this.type,
     required this.icon,
+    super.key,
     required this.label,
     required this.hint,
     this.pass = false,
     this.controller,
-    this.validator,
   });
-
   @override
   Widget build(BuildContext context) {
-    return TextFormField(
+    // TODO: implement build
+    return TextField(
       controller: controller,
       keyboardType: type,
       obscureText: pass,
-      validator: validator,
       decoration: InputDecoration(
-        prefixIcon: Icon(icon),
+        prefix: Icon(icon, color: GlobalColors.mediumColorH),
         labelText: label,
         hintText: hint,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(10),
-        ),
         filled: true,
-        fillColor: Colors.grey[100],
+        fillColor: GlobalColors.lightColor,
+        border: OutlineInputBorder(
+          borderSide: BorderSide(color: GlobalColors.lightColorH),
+          borderRadius: BorderRadius.all(Radius.circular(radius)),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderSide: BorderSide(color: GlobalColors.mediumColor),
+          borderRadius: BorderRadius.all(Radius.circular(radius)),
+        ),
       ),
     );
   }

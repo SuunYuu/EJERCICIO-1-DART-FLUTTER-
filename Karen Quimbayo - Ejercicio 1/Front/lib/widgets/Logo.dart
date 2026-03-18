@@ -6,7 +6,6 @@ class LogoHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // TODO: implement build
     return Positioned(
       top: 80,
       left: MediaQuery.of(context).size.width * 0.38,

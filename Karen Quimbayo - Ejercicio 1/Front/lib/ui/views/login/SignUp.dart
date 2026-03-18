@@ -1,99 +1,21 @@
 // ignore_for_file: file_names
 
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:proyecto_instructor_diego/ui/views/login/Login.dart';
 import 'package:proyecto_instructor_diego/widgets/Header.dart';
 import 'package:proyecto_instructor_diego/widgets/Logo.dart';
-import 'package:get/get.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
-
 import '../../../utils/Global.colors.dart';
 import '../../../widgets/TextFieldCustom.dart';
+import 'package:proyecto_instructor_diego/services/api_service.dart';
 
-class SignUp extends StatefulWidget {
+final TextEditingController signUpUserController = TextEditingController();
+final TextEditingController signUpPasswordController = TextEditingController();
+final TextEditingController signUpConfirmPasswordController =
+    TextEditingController();
+
+class SignUp extends StatelessWidget {
   const SignUp({super.key});
-
-  @override
-  State<SignUp> createState() => _SignUpState();
-}
-
-class _SignUpState extends State<SignUp> {
-  // Controladores para los campos de texto
-  final TextEditingController userController = TextEditingController();
-  final TextEditingController emailController = TextEditingController();
-  final TextEditingController phoneController = TextEditingController();
-  final TextEditingController passwordController = TextEditingController();
-  
-  // Variable para mostrar el círculo de carga
-  bool cargando = false;
-
-  // Mensaje para mostrar errores
-  String mensajeError = '';
-
-  // Función para registrar usuario
-  Future<void> registrarUsuario() async {
-    // Validar campos vacíos
-    if (userController.text.isEmpty ||
-        emailController.text.isEmpty ||
-        passwordController.text.isEmpty) {
-      setState(() {
-        mensajeError = 'Por favor llena todos los campos';
-      });
-      return;
-    }
-
-    setState(() {
-      cargando = true;
-      mensajeError = '';
-    });
-
-    try {
-      // Datos que pide tu API
-      Map<String, dynamic> datos = {
-        "user": emailController.text, // Tu API usa el email en "user"
-        "password": passwordController.text,
-        "status": "Active", // Por defecto activo
-        "role": "read-only" // Por defecto read-only
-      };
-
-      // Llamada a la API
-      var respuesta = await http.post(
-        Uri.parse('http://localhost:3000/api_v1/apiUser'),
-        headers: {"Content-Type": "application/json"},
-        body: json.encode(datos),
-      );
-
-      if (respuesta.statusCode == 200 || respuesta.statusCode == 201) {
-        // Registro exitoso
-        Get.snackbar(
-          '¡Bienvenido!',
-          'Registro completado',
-          backgroundColor: Colors.green,
-          colorText: Colors.white,
-          snackPosition: SnackPosition.BOTTOM,
-        );
-        
-        // Ir al login después de 1 segundo
-        Future.delayed(const Duration(seconds: 1), () {
-          Get.to(const LoginView());
-        });
-      } else {
-        // Error del servidor
-        setState(() {
-          mensajeError = 'Error al registrar. Intenta de nuevo.';
-        });
-      }
-    } catch (e) {
-      setState(() {
-        mensajeError = 'Error de conexión. ¿El servidor está corriendo?';
-      });
-    } finally {
-      setState(() {
-        cargando = false;
-      });
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -102,101 +24,20 @@ class _SignUpState extends State<SignUp> {
         padding: const EdgeInsets.only(top: 0),
         physics: const BouncingScrollPhysics(),
         children: [
-          const Stack(
-            children: [
-              HeaderLogin(),
-              LogoHeader(),
-            ],
+          Stack(
+            children: [HeaderLogin(), LogoHeader()],
           ),
-          const Title(),
-          
-          // Mensaje de error (si hay)
-          if (mensajeError.isNotEmpty)
-            Container(
-              margin: const EdgeInsets.all(20),
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: Colors.red[100],
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Text(
-                mensajeError,
-                style: const TextStyle(color: Colors.red),
-                textAlign: TextAlign.center,
-              ),
-            ),
-          
-          // Campos de texto
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20.0),
-            child: Column(
-              children: [
-                TextFieldCustom(
-                  type: TextInputType.text,
-                  icon: Icons.person_outlined,
-                  label: 'Usuario',
-                  hint: 'Escribe tu usuario',
-                  controller: userController,
-                ),
-                const SizedBox(height: 20),
-                TextFieldCustom(
-                  type: TextInputType.emailAddress,
-                  icon: Icons.email_outlined,
-                  label: 'Email',
-                  hint: 'Escribe tu email',
-                  controller: emailController,
-                ),
-                const SizedBox(height: 20),
-                TextFieldCustom(
-                  type: TextInputType.phone,
-                  icon: Icons.phone_outlined,
-                  label: 'Teléfono',
-                  hint: 'Escribe tu teléfono',
-                  controller: phoneController,
-                ),
-                const SizedBox(height: 20),
-                TextFieldCustom(
-                  type: TextInputType.visiblePassword,
-                  icon: Icons.password_outlined,
-                  label: 'Contraseña',
-                  hint: 'Escribe tu contraseña',
-                  pass: true,
-                  controller: passwordController,
-                ),
-              ],
-            ),
-          ),
-          
-          const SizedBox(height: 30),
-          
-          // Botón de registro
-          Container(
-            margin: const EdgeInsets.all(25),
-            decoration: BoxDecoration(
-              color: cargando ? Colors.grey : GlobalColors.secondaryColorH,
-              borderRadius: BorderRadius.circular(50),
-            ),
-            child: TextButton(
-              onPressed: cargando ? null : registrarUsuario,
-              child: Text(
-                cargando ? 'REGISTRANDO...' : 'REGISTRARME',
-                style: const TextStyle(
-                  height: 3.1,
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
-              ),
-            ),
-          ),
+          const SignUpTitle(),
+          const SignUpTextFields(),
+          const SignUpButton(),
         ],
       ),
     );
   }
 }
 
-class Title extends StatelessWidget {
-  const Title({super.key});
+class SignUpTitle extends StatelessWidget {
+  const SignUpTitle({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -206,32 +47,166 @@ class Title extends StatelessWidget {
         children: [
           TextButton(
             onPressed: () {
-              Get.to(const LoginView());
+              Get.off(() => const LoginView());
             },
             child: const Text(
-              'INICIAR SESIÓN',
+              'SIGN IN',
               style: TextStyle(
-                fontSize: 16,
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
                 color: Colors.grey,
               ),
             ),
           ),
           const Text(
-            '|',
-            style: TextStyle(fontSize: 20, color: Colors.grey),
+            '/',
+            style: TextStyle(
+              fontSize: 25,
+              color: Colors.grey,
+            ),
           ),
           TextButton(
-            onPressed: null,
+            onPressed: () {},
             child: Text(
-              'REGISTRARME',
+              'SIGN UP',
               style: TextStyle(
-                fontSize: 16,
+                fontSize: 25,
                 fontWeight: FontWeight.bold,
                 color: GlobalColors.darkColorH,
               ),
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class SignUpTextFields extends StatelessWidget {
+  const SignUpTextFields({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20.0),
+      child: Column(
+        children: [
+          // Campo: usuario (api_user en BD)
+          TextFieldCustom(
+            type: TextInputType.text,
+            icon: Icons.person_outlined,
+            label: 'Usuario',
+            hint: 'Ingresa tu nombre de usuario',
+            controller: signUpUserController,
+          ),
+          const SizedBox(height: 20),
+          // Campo: contraseña (api_password en BD)
+          TextFieldCustom(
+            type: TextInputType.visiblePassword,
+            icon: Icons.lock_outline,
+            label: 'Contraseña',
+            hint: 'Ingresa tu contraseña',
+            pass: true,
+            controller: signUpPasswordController,
+          ),
+          const SizedBox(height: 20),
+          // Campo: confirmar contraseña (solo validación en cliente)
+          TextFieldCustom(
+            type: TextInputType.visiblePassword,
+            icon: Icons.lock_outline,
+            label: 'Confirmar contraseña',
+            hint: 'Repite tu contraseña',
+            pass: true,
+            controller: signUpConfirmPasswordController,
+          ),
+          const SizedBox(height: 20),
+        ],
+      ),
+    );
+  }
+}
+
+class SignUpButton extends StatelessWidget {
+  const SignUpButton({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.all(25),
+      decoration: BoxDecoration(
+        color: GlobalColors.secondaryColorH,
+        borderRadius: const BorderRadius.all(
+          Radius.circular(50),
+        ),
+      ),
+      child: TextButton(
+        onPressed: () async {
+          final user = signUpUserController.text.trim();
+          final password = signUpPasswordController.text.trim();
+          final confirmPassword = signUpConfirmPasswordController.text.trim();
+
+          // Validación: campos vacíos
+          if (user.isEmpty || password.isEmpty || confirmPassword.isEmpty) {
+            Get.snackbar(
+              "Error",
+              "Todos los campos son obligatorios",
+              snackPosition: SnackPosition.BOTTOM,
+              backgroundColor: GlobalColors.dangerColor,
+              colorText: Colors.white,
+            );
+            return;
+          }
+
+          // Validación: contraseñas coinciden
+          if (password != confirmPassword) {
+            Get.snackbar(
+              "Error",
+              "Las contraseñas no coinciden",
+              snackPosition: SnackPosition.BOTTOM,
+              backgroundColor: GlobalColors.dangerColor,
+              colorText: Colors.white,
+            );
+            return;
+          }
+
+          // Llamada al backend: POST /api_v1/apiUser
+          // Envía: { user, password, status: "Active", role: "user" }
+          final result = await ApiService.register(user, password);
+
+          if (result["success"] == true) {
+            // Limpiar campos
+            signUpUserController.clear();
+            signUpPasswordController.clear();
+            signUpConfirmPasswordController.clear();
+
+            Get.snackbar(
+              "¡Éxito!",
+              "Usuario registrado correctamente. Inicia sesión.",
+              snackPosition: SnackPosition.BOTTOM,
+              backgroundColor: GlobalColors.successColor,
+              colorText: Colors.white,
+            );
+            // Regresar al login
+            Get.off(() => const LoginView());
+          } else {
+            Get.snackbar(
+              "Error",
+              result["message"] ?? "Error al registrar usuario",
+              snackPosition: SnackPosition.BOTTOM,
+              backgroundColor: GlobalColors.dangerColor,
+              colorText: Colors.white,
+            );
+          }
+        },
+        child: const Text(
+          'SIGN UP',
+          style: TextStyle(
+            height: 3.1,
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+          ),
+        ),
       ),
     );
   }
